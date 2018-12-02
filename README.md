@@ -1,4 +1,4 @@
-# TSC (Terminal Scripts Collection)
+# TSC (Terminal Script Collection)
 A set of Python scripts for CLI use (or conky!), doing some boring automation.
 
 # Requisites:
