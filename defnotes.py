@@ -1,4 +1,4 @@
-PATH = "/home/meru/Dropbox/Projects/Programming/TSC/files/events.json"
+PATH = "YOUR_PATH/files/events.json"
 
 """
 Merutochan
