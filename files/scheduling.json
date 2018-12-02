@@ -1,0 +1,105 @@
+{
+	"events":{
+		"week":[
+			{
+				"n":"1",
+				"Name":"Monday",
+				"Work":true,
+				"Schedule":[
+					{
+						"start":"07.00",
+						"end":"12.30",
+						"what":"Work shift",
+						"where":"Workplace #1"
+					 }
+
+				]
+			},
+			
+			{
+				"n":"2",
+				"Name":"Tuesday",
+				"Work":true,
+				"Schedule":[
+					{
+						"start":"08.30",
+						"end":"14.30",
+						"what":"Work shift",
+						"where":"Workplace #2"
+					 }
+				]
+			},
+			
+			{
+				"n":"3",
+				"Name":"Wednesday",
+				"Work":true,
+				"Schedule":[
+					{
+						"start":"10.30",
+						"end":"18.30",
+						"what":"Work shift",
+						"where":"Workplace #1"
+					 }
+				]
+			},
+			
+			{
+				"n":"4",
+				"Name":"Thursday",
+				"Work":true,
+				"Schedule":[
+					{
+						"start":"12.30",
+						"end":"18.30",
+						"what":"Work shift",
+						"where":"Workplace #1"
+					 }
+				]
+			},
+			
+			{
+				"n":"5",
+				"Name":"Friday",
+				"Work":false,
+				"Schedule":[
+					{
+						"start":"15.30",
+						"end":"17.30",
+						"what":"Yoga class",
+						"where":"Gym"
+					 }
+				]
+			},
+			
+			{
+				"n":"6",
+				"Name":"Saturday",
+				"Work":false,
+				"Schedule":[
+				
+				]
+			},
+			
+			{
+				"n":"0",
+				"Name":"Sunday",
+				"Work":false,
+				"Schedule":[
+				
+				]
+			}
+		],	
+
+
+		"year":{
+			"birthdays":[
+				{ "Name":"Jesus Christ",     "Year":0, "Date":"25/12" }
+			],
+			
+			"holidays":[
+				{ "Name":"Christmas",     "Message":"Merry christmas!", "Date":"25/12" }
+			]
+		}
+	}
+}
