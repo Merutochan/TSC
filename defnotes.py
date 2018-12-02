@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 PATH = "YOUR_PATH/files/events.json"
 
 """
@@ -83,8 +84,6 @@ def newEvent():
 			d = json.load(j_data)
 	except IOError:
 		print("Could not open the file " + PATH + " (READ)")
-		
-	print(d)
 	
 	# User input
 	eventName = input("Insert the name of the event: ")

@@ -1,4 +1,5 @@
-PATH = 'YOUR_PATH/fles/scheduling.json'
+#!/usr/bin/python3
+PATH = 'YOUR_PATH/files/scheduling.json'
 
 """
 Merutochan
