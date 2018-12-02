@@ -16,7 +16,7 @@ It is possible to also automatically send an email with an ICS file (for Google 
 # Configuration
 Open the scripts and set up your stuff!
 
-- __defnotes__ needs a PATH for the .json file, and optional access to an STMP server to send a notifier via email.
+- __defnotes__ needs a PATH for the .xml file, and optional access to an STMP server to send a notifier via email.
 - __streamers__ needs your Twitch username and the ID of your Twitch API (just register on the Twitch API website).
 - The other files also require a PATH for .xmls and such.
 
