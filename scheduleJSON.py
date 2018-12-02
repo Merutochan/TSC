@@ -30,8 +30,8 @@ def dayschedule(n):
 					print('[' + color2 + e['start'] + reset+ '~' + color2 + e['end'] + reset + ']')
 					print(color3 + e['what'] + reset + ' - ' + color4 + e['where'] + reset)
 			else:
-				print(color3+"Today is a free day."+reset)
-				print(color2+"Enjoy it while it lasts."+reset)
+				print(color3 + "Today is a free day." + reset)
+				print(color2 + "Enjoy it while it lasts." + reset)
 
 # Parse birthdays
 def birthdays(date):

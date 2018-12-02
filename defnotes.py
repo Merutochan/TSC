@@ -1,33 +1,23 @@
-SMTP_SERVER='your_server'
-LOGIN = 'your_user'
-PASSWORD = 'your_password'
-MAIL = 'your_mail'
-PATH = "files/events.xml"
-SEND_ICS = False
+PATH = "/home/meru/Dropbox/Projects/Programming/TSC/files/events.json"
+
 """
 Merutochan
 http://merutochan.it
-any reference to death note is purely coincidental
+any reference to Death Note is purely coincidental
 
 """
 
 # LIBRARIES
-import xml.etree.ElementTree as ET
-import xml.dom.minidom as MD
+import json
 import sys
 import re
 import collections
 import colored
 import time
-import smtplib
 import os
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-
-# VARIABLES
 
 # Create a named tuple for the "events"
-tuplaEvento = collections.namedtuple('Event', ['name', 'desc', 'date', 'time',
+definedEvent = collections.namedtuple('Event', ['name', 'desc', 'date', 'time',
                                           'place'])
 # Colored
 COLOR = colored.fg(226)
@@ -35,31 +25,27 @@ COLOR2 = colored.fg(6)
 COLOR3 = colored.fg(4)
 COLOR4 = colored.fg(82)
 RESET = colored.attr('reset')
-TREE = ET.parse(PATH)
-# Get root of XML file
-ROOT = TREE.getroot()
 
 # FUNCTIONS
 
-def inpLine():
+def shellInterface():
     inp = input("defnotes >> ")
-    # I split "" so I can treat name, description and place as strings
+    
+    # I split "" so I can treat parameters
     inpS = re.split("\" | '", inp)
     # I split inpS[0] again, which should give the actual input I need
     inpSS = inpS[0].split()
+ 
     # Execute input
-    # EXIT
     if (not inp):
         pass
     elif (inpSS[0] == "exit" or inpSS[0] == "quit"):
-        prettify()
         quit()
-    # HELP
+    
     elif (inpSS[0] == "help"):
         print(COLOR+"Notes and Events Scheduler Script - Merutochan"+RESET)
         print(COLOR3+"(http://merutochan.it)"+RESET)
-        print()
-        print()
+        print("\n\n")
         print(COLOR2+"'add'"+RESET+" : add an event to the list.")
         print(COLOR2+"\tadd 'name' 'description' date time 'place'")
         print(COLOR2+"'remove'"+RESET+" : remove an event from the list.")
@@ -67,25 +53,17 @@ def inpLine():
         print(COLOR2+"\t-t"+RESET+" : remove all events at a certain time.")
         print(COLOR2+"'ls'"+RESET+" : lists all the events from the list.")
         print(COLOR2+"'clear'"+RESET+" : removes all the events from the list.")
-        print(COLOR2+"'help' :"+RESET+" shows these helpful informations. ;)")
-        print(COLOR2+"'exit' / 'quit' :"+RESET+" quit this program. :(")
+        print(COLOR2+"'help' :"+RESET+" shows this. ;)")
+        print(COLOR2+"'exit' / 'quit' :"+RESET+" quit this program.")
         print(RESET)
-    # ADD
+    
     elif (inpSS[0] == "add"):
-        # If with arguments
-        if (len(inpS)>1):
-            # GET THE INPUT ARGUMENTS
-            inpSDT = inpS[4].split() # This will give me date and time
-            addevent(tuplaEvento(inpS[1], inpS[3], inpSDT[0],
-            inpSDT[1], inpS[5]))
-        # If without arguments
-        elif (len(inpSS)==1):
-            addEvent(newEvent())
+        if (len(inpSS)==1):
+            newEvent()
         else:
-            print("Wrong number of arguments! Use only " + inpSS[0]+
-            " or "+inpSS[0] + " 'description' 'date' 'time' 'place'.")
+            print("Wrong number of arguments! Use only '"+inpSS[0]+"'.")
     # REMOVE
-    elif (inpSS[0] == "remove"):
+    elif (inpSS[0] == "rm"):
         removeEvent(inp)
     # LS
     elif (inpSS[0] == "ls"):
@@ -95,261 +73,236 @@ def inpLine():
         clear()
     else:
         print("Invalid input! Use 'help' to get help.")
-    inpLine()
+    shellInterface()
     return
-
-# CREATE NEW EVENT
-def newEvent():
-    eventName = input("Insert the name of the event: ")
-    eventDesc = input("Insert the description of the event: ")
-    eventDate = input("Insert the date of the event (dd/mm/yyyy): ")
-    eventTime = input("Insert the time of the event: ")
-    eventPlace = input("Insert the place of the event: ")
-    if ((not eventName)):
-        print("Error! Content was blank!")
-        inpLine()
-    else:
-        e = tuplaEvento(eventName, eventDesc, eventDate, eventTime, eventPlace)
-        return e
 
 # ADD EVENT
-def addEvent(event):
-    # Crea un nodo e setta gli attributi
-    newEvent = ET.Element("event")
-    newEvent.set("name", event.name)
-    newEvent.set("desc", event.desc)
-    newEvent.set("date", event.date)
-    newEvent.set("time", event.time)
-    newEvent.set("place", event.place)
+def newEvent():
+	try:
+		with open(PATH, 'r') as j_data:
+			d = json.load(j_data)
+	except IOError:
+		print("Could not open the file " + PATH + " (READ)")
+		
+	print(d)
+	
+	# User input
+	eventName = input("Insert the name of the event: ")
+	if ((not eventName)):
+		print("Error! Content was blank!")
+		shellInterface()
+	eventDesc = input("Insert the description of the event: ")
+	eventDate = input("Insert the date of the event (dd/mm/yyyy): ")
+	eventTime = input("Insert the time of the event: ")
+	eventPlace = input("Insert the place of the event: ")
+	
+	x = {"Name":eventName,"Desc":eventDesc,"Date":eventDate,"Time":eventTime,"Place":eventPlace}
+	
+	# Put element in order
+	position = 0
+	for e in d['events']:
+		if (not eventDate):
+			break
+		elif (not e['Date']):
+			position+=1
+			continue
+		# CHECK YEAR, MONTH, DAY, HOUR, MINUTE
+		elif(int(eventDate.split("/")[2]) >
+		int(e['Date'].split("/")[2])):
+			position+=1
+			continue
+		elif(int(eventDate.split("/")[1]) >
+		int(e['Date'].split("/")[1])):
+			position+=1
+			continue
+		elif(int(eventDate.split("/")[0]) >
+		int(e['Date'].split("/")[0])):
+			position+=1
+			continue
+		elif(int(eventTime.split(":")[0]) >
+		int(e['Time'].split(":")[0])):
+			position+=1
+			continue
+		elif(int(eventTime.split(":")[1]) >
+		int(e['Time'].split(":")[1])):
+			position+=1
+			continue
+		else:
+			break
+	
+	d['events'].insert(position, x)
+	
+	print(d)
+	
+	try:
+		with open(PATH, "w") as j_data:
+			json.dump(d, j_data, indent=4, sort_keys=True)
+	except IOError:
+		print("Could not open the file " + PATH + " (WRITE)")
 
-    if ((event.date) and os.system("ping http://google.it")==0 and SEND_ICS):
-        makeICS(event)
-
-    # Parse the XML with a linear search in order to place the event in
-    # chronological order
-    parsed = 0
-    for e in ROOT.findall("event"):
-        if (not newEvent.get("date")):
-            break
-        elif (not e.get("date")):
-            parsed+=1
-            continue
-        # CHECK YEAR, MONTH, DAY, HOUR, MINUTE
-        elif(int(newEvent.get("date").split("/")[2]) >
-        int(e.get("date").split("/")[2])):
-            parsed+=1
-            continue
-        elif(int(newEvent.get("date").split("/")[1]) >
-        int(e.get("date").split("/")[1])):
-            parsed+=1
-            continue
-        elif(int(newEvent.get("date").split("/")[0]) >
-        int(e.get("date").split("/")[0])):
-            parsed+=1
-            continue
-        elif(int(newEvent.get("time").split(":")[0]) >
-        int(e.get("time").split(":")[0])):
-            parsed+=1
-            continue
-        elif(int(newEvent.get("time").split(":")[1]) >
-        int(e.get("time").split(":")[1])):
-            parsed+=1
-            continue
-        else:
-            break
-    # Add the node to the structure
-    ROOT.insert(parsed, newEvent)
-    # Overwrite XML
-    TREE.write(PATH)
-    print("Event saved.")
-    return
+	return
+	
 
 # SHOW ALL EVENTS
 def listAllEvents():
-    shown = 0
-    for e in ROOT.findall("event"):
-        if(not e.get("date")):
-            print(colored.fg(5)+e.get("name")+RESET)
-            print(e.get("desc"))
-            shown+=1
-        else:
-            print(COLOR+"["+e.get("date")+"] "+RESET+COLOR2+"("+e.get("time")+
-            ") "+RESET+COLOR3+e.get("name")+RESET+COLOR4+
-            " @ ["+e.get("place")+"]"+RESET)
-            print(e.get("desc"))
-            shown+=1
-    if (shown == 0):
-        print("There are no events to show.")
-    return
+	shown = 0
+	# Read file
+	try:
+		with open(PATH, "r") as j_data:
+			d = json.load(j_data)
+	except IOError:
+		print("Could not open the file " + PATH + " (READ)")
+	
+	# LIST
+	for e in d['events']:
+		if(not e['Date']):
+			print(colored.fg(5) + e['Name'] + RESET)
+			print(e['Desc'])
+			shown+=1
+		else:
+			print(COLOR +"[" + e['Date'] + "] " + RESET + COLOR2 + "(" + e['Time'] +
+			") " + RESET + COLOR3 + e['Name'] + RESET + COLOR4 + " @ ["+e['Place']+"]" + RESET)
+			print(e['Desc'])
+			shown+=1
+	if (shown == 0):
+		print("There are no events to show.")
+	return
 
-# CLEAR ALL EVEBTS
+# CLEAR ALL EVENTS
 def clear():
-    counter = 0
-    for e in ROOT.findall("event"):
-        ROOT.remove(e)
-        TREE.write(PATH)
-        counter+=1
-    print(str(counter) +" event(s) removed.")
-    return
+	# Read file
+	try:
+		with open(PATH, "w") as j_data:
+			d = { "events" :  [] }
+			json.dump(d, j_data)
+			print("Cleared all event(s).")
+	except IOError:
+		print("Could not open the file " + PATH + " (WRITE)")
+	return
+
 
 # REMOVE EVENT
 def removeEvent(mode):
-    # SINGLE MODE, BY NAME
-    modeSplit = mode.split()
-    if (len(modeSplit)==1):
-        toBeRemoved = input("Insert the name of the event to be removed: ")
-        for e in ROOT.findall("event"):
-            if (e.get("name") == toBeRemoved):
-                ROOT.remove(e)
-                TREE.write(PATH)
-                print("Event removed.")
-                return
-        print("No matching event was found.")
-        
+	# Read file
+	try:
+		with open(PATH, "r") as j_data:
+			d = json.load(j_data)
+	except IOError:
+		print("Could not open the file " + PATH + " (READ)")
+
+	modeSplit = mode.split()
+	# SINGLE MODE (REMOVE BY NAME)
+	if (len(modeSplit)==1):
+		toBeRemoved = input("Insert the name of the event to be removed: ")
+		for e in d['events']:
+			if (e["Name"] == toBeRemoved):
+				d['events'].remove(e)
+				# Rewrite file
+				try:
+					with open(PATH, "w") as j_data:
+						json.dump(d, j_data)
+						print("Event removed.")
+						break
+				except IOError:
+					print("Could not open the file " + PATH + " (WRITE)")
+				return
+		print("No matching event was found.")
+		
+
     # DATE MODE
-    elif (modeSplit[1]=="-d"):
-        for e in ROOT.findall("event"):
-            if (e.get("date") == modeSplit[2]):
-                ROOT.remove(e)
-                TREE.write(PATH)
-                print("Event removed.")
-        
+	elif (modeSplit[1]=="-d" and len(modeSplit)==3):
+		for e in d['events']:
+			if (e['Date'] == modeSplit[2]):
+				d['events'].remove(e)
+				# Rewrite file
+				try:
+					with open(PATH, "w") as j_data:
+						json.dump(d, j_data)
+						print("Event removed.")
+				except IOError:
+					print("Could not open the file " + PATH + " (WRITE)")
+		print("No matching event was found.")
+                
+
     # TIME MODE
-    elif (modeSplit[1]=="-t"):
-        for e in ROOT.findall("event"):
-            if (e.get("time") == modeSplit[2]):
-                ROOT.remove(e)
-                TREE.write(PATH)
-                print("Event removed.")
-        
+	elif (modeSplit[1]=="-t" and len(modeSplit)==3):
+		for e in d['events']:
+			if (e['Time'] == modeSplit[2]):
+				d['events'].remove(e)
+				# Rewrite file
+				try:
+					with open(PATH, "w") as j_data:
+						json.dump(d, j_data)
+						print("Event removed.")
+				except IOError:
+					print("Could not open the file " + PATH + " (WRITE)")
+		print("No matching event was found.")
     # ERROR
-    else:
-        print("Wrong use of parameters/arguments! Use 'help' to have more info"+
-        " about the use of the 'remove' function.")
-    return
-    
-# PRETTY PRINT XML
-def prettify():
-    nonPrettyXML = MD.parse(PATH)
-    prettyXML = nonPrettyXML.toprettyxml(indent="  ")
-    # OPEN / WRITE / CLOSE
-    toPrettify = open(PATH, "w")
-    toPrettify.write(prettyXML)
-    toPrettify.close()
-    return
+	else:
+		print("Wrong use of parameters/arguments! Use 'help' to have more info"+
+		" about the use of the 'remove' function.")
+	return
 
-# CREATE .ICS FILE
-def makeICS(event):
-    ics = open(event.name + ".ics","w")
-    ics.write("BEGIN:VCALENDAR\n")
-    ics.write("VERSION:2.0\n")
-    ics.write("CALSCALE:GREGORIAN\n")
-    ics.write("BEGIN:VEVENT\n")
-    ics.write("DTSTART:")
-    ics.write(event.date.split("/")[2])
-    ics.write(event.date.split("/")[1])
-    ics.write(event.date.split("/")[0]+ "T")
-    ics.write(event.time.split(":")[0])
-    ics.write(event.time.split(":")[1] + "00\n")
-    ics.write("DTEND:")
-    ics.write(event.date.split("/")[2])
-    ics.write(event.date.split("/")[1])
-    ics.write(event.date.split("/")[0]+ "T")
-    ics.write(event.time.split(":")[0])
-    ics.write(event.time.split(":")[1] + "30\n")
-    ics.write("UID:" + event.name + "\n")
-    ics.write("SUMMARY:" + event.name + "\n")
-    ics.write("LOCATION:" + event.place + "\n")
-    ics.write("DESCRIPTION:" + event.desc + "\n")
-    ics.write("PRIORITY:1\n")
-    ics.write("END:VEVENT\n")
-    ics.write("END:VCALENDAR\n")
-    ics.close()
-    ics = open(event.name + ".ics", "rb")
-    # SEND AS MAIL ATTACHMENT
-    sendMailWithAttachment(ics.read())
-    ics.close()
-    # DELETE THE FILE
-    os.remove(event.name + ".ics")
-    return
-
-# EMAIL ATTACHMENT SELF SENDER
-def sendMailWithAttachment(ics):
-    # STRUCTURE MAIL
-    msg = MIMEMultipart()
-    msg['Subject'] = "Nuovo evento da aggiungere al calendario"
-    msg['From'] = MAIL
-    msg['To'] = MAIL
-
-    # GENERATE ATTACHMENT
-    x = MIMEBase('application', 'octet-stream')
-    x.set_payload(ics)
-    x.add_header('Content-Disposition', 'attachment; filename="file.ics"')
-    msg.attach(x)
-
-    # SEND EMAIL VIA SMTP GMAIL SERVER
-    s = smtplib.SMTP(SMTP_SERVER)
-    s.ehlo()
-    s.starttls()
-    s.login(LOGIN, PASSWORD)
-    s.send_message(msg)
-    s.quit()
-    return
 
 # CHECK FOR THE PASSED EVENTS, REMOVE THEM
-def checkExpirated():
-    erased = 0
-    for e in ROOT.findall("event"):
-        if (not e.get("date")):
-          continue
-        year = int(e.get("date").split("/")[2])
-        month = int(e.get("date").split("/")[1])
-        day = int(e.get("date").split("/")[0])
-        hour = int(e.get("time").split(":")[0])
-        minu = int(e.get("time").split(":")[1])
-        if (not e.get("date")):
-            continue
-        elif (year<int(time.strftime("%Y"))):
-            ROOT.remove(e)
-            TREE.write(PATH)
-            erased+=1
+def checkExpired():
+	# Read file
+	try:
+		with open(PATH, "r") as j_data:
+			d = json.load(j_data)
+	except IOError:
+		print("Could not open the file " + PATH + " (READ)")
 
-        elif (year==int(time.strftime("%Y"))):
-            if (month<int(time.strftime("%m"))):
-                ROOT.remove(e)
-                TREE.write(PATH)
-                erased+=1
-
-            elif (month==int(time.strftime("%m"))):
-                if (day<int(time.strftime("%d"))):
-                    ROOT.remove(e)
-                    TREE.write(PATH)
-                    erased+=1
-
-                elif (day==int(time.strftime("%d"))):
-                    if (hour<int(time.strftime("%H"))):
-                        ROOT.remove(e)
-                        TREE.write(PATH)
-                        erased+=1
-
-                    elif (hour==int(time.strftime("%H"))):
-                        if (minu<int(time.strftime("%M"))):
-                            ROOT.remove(e)
-                            TREE.write(PATH)
-                            erased+=1
-
-        else:
-            continue
-    if (erased > 0):
-        print(str(erased) + " events were past events and were removed.")
-    return
+	erased = 0
+	for e in d['events']:
+		if (not e['Date']):
+			continue
+		year = int(e['Date'].split("/")[2])
+		month = int(e['Date'].split("/")[1])
+		day = int(e['Date'].split("/")[0])
+		hour = int(e['Time'].split(":")[0])
+		minu = int(e['Time'].split(":")[1])
+        # Check on year
+		if (year<int(time.strftime("%Y"))):
+			d['events'].remove(e)
+			erased+=1
+		elif (year==int(time.strftime("%Y"))):
+			# Check on month
+			if (month<int(time.strftime("%m"))):
+				d['events'].remove(e)
+				erased+=1
+			elif (month==int(time.strftime("%m"))):
+				# Check on day
+				if (day<int(time.strftime("%d"))):
+					d['events'].remove(e)
+					erased+=1            
+				elif (day==int(time.strftime("%d"))):
+					# Check on hour
+					if (hour<int(time.strftime("%H"))):
+						d['events'].remove(e)
+						erased+=1
+					elif (hour==int(time.strftime("%H"))):
+						# Check on minute
+						if (minu<int(time.strftime("%M"))):
+							d['events'].remove(e)
+							erased+=1
+		else:
+			continue
+	if (erased > 0):
+		# Rewrite file
+		try:
+			with open(PATH, "w") as j_data:
+				json.dump(d, j_data)
+		except IOError:
+			print("Could not open the file " + PATH + " (WRITE)")
+		print("Removed " + str(erased) + " past events.")
+	return
 
 
 # EXECUTION CODE
-
 if (len(sys.argv)==1):
-    checkExpirated()
-    inpLine()
-else :
+    checkExpired()
+    shellInterface()
+else:
     print("Error.")
     print("Wrong number of arguments! Use only defschedule.")
